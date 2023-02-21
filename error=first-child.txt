@@ -1,0 +1,31 @@
+7 resultados - Archivos de 6
+
+src\@core\layouts\components\vertical\navigation\index.js:
+  132            ) : (
+  133:             <List className='nav-items' sx={{ pt: 0, '& > :first-child': { mt: '0' } }}>
+  134                <VerticalNavItems
+
+src\@core\theme\overrides\accordion.js:
+  52            '& + .MuiCollapse-root': {
+  53:             '& .MuiAccordionDetails-root:first-child': {
+  54                paddingTop: 0
+
+src\@core\theme\overrides\table.js:
+  42          root: {
+  43:           '& .MuiTableCell-head:not(.MuiTableCell-paddingCheckbox):first-child, & .MuiTableCell-root:not(.MuiTableCell-paddingCheckbox):first-child ':
+  44              {
+
+src\views\apps\email\MailLog.js:
+  38    transition: 'border 0.15s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
+  39:   '&:not(:first-child)': {
+  40      borderTop: `1px solid ${theme.palette.divider}`
+
+src\views\dashboards\ecommerce\EcommerceSalesOverviewWithTabs.js:
+  160                  },
+  161:                 '&:first-child .MuiTableCell-body': {
+  162                    pt: theme => `${theme.spacing(3)} !important`
+
+src\views\ui\cards\advanced\CardTopReferralSources.js:
+  212                  },
+  213:                 '&:first-child .MuiTableCell-body': {
+  214                    pt: theme => `${theme.spacing(3)} !important`

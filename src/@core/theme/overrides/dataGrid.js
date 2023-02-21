@@ -61,10 +61,11 @@ const DataGrid = theme => {
           },
           '&:last-of-type': {
             paddingRight: theme.spacing(5)
-          },
-          '&:focus, &:focus-within': {
-            outline: 'none'
           }
+
+          // '&:focus, &:focus-within': {
+          //   outline: 'none'
+          // }
         },
         cellCheckbox: {
           maxWidth: '58px !important',
