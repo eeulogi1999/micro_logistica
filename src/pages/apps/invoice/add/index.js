@@ -23,7 +23,7 @@ const InvoiceAdd = ({ apiClientData, invoiceNumber }) => {
   const toggleAddCustomerDrawer = () => setAddCustomerOpen(!addCustomerOpen)
 
   return (
-    <DatePickerWrapper sx={{ '& .react-datepicker-wrapper': { width: 'auto' } }}>
+    <DatePickerWrapper>
       <Grid container spacing={6}>
         <Grid item xl={9} md={8} xs={12}>
           <AddCard

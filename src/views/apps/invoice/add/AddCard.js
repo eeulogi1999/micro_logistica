@@ -46,8 +46,8 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
     <TextField
       size='small'
       inputRef={ref}
-      sx={{ width: { sm: '250px', xs: '170px' }, '& .MuiInputBase-input': { color: 'text.secondary' } }}
       {...props}
+      sx={{ '& .MuiInputBase-input': { color: 'text.secondary' }, width: '100%' }}
     />
   )
 })
@@ -183,19 +183,38 @@ const AddCard = props => {
   }
 
   const columns = [
-    { field: 'mde_id', headerName: 'NRO', editable: true, flex: 1 },
+    { field: 'mde_id', headerName: 'NRO', headerAlign: 'center', editable: true, flex: 1 },
     { field: 'mde_bie_id', headerName: 'MATERIAL', editable: true, flex: 1 },
-    { field: 'mde_q', headerName: 'CANTIDAD', editable: true, flex: 1 },
-    { field: 'mde_p', headerName: 'PRECIO', editable: true, flex: 1 },
+    { field: 'mde_q', headerName: 'CANTIDAD', headerAlign: 'center', align: 'right', editable: true, flex: 1 },
+    { field: 'mde_p', headerName: 'PRECIO', headerAlign: 'center', align: 'right', editable: true, flex: 1 },
     {
       field: 'mde_importe',
       headerName: 'IMPORTE',
+      headerAlign: 'center',
       flex: 1,
-      alignItems: 'flex-end',
+      align: 'right',
       editable: true,
       valueGetter: getImporte,
       valueSetter: setImporte,
       sortComparator: (v1, v2) => v1.toString().localeCompare(v2.toString())
+    },
+    {
+      field: 'mde_opt',
+      width: 100,
+      hideable: false,
+      hideSortIcons: true,
+      renderHeader: () => (
+        <Button size='small' onClick={handleAddRow}>
+          add
+        </Button>
+      ),
+      renderCell: row => {
+        return (
+          <Button size='small' onClick={handleAddRow}>
+            del
+          </Button>
+        )
+      }
     }
   ]
 
@@ -282,7 +301,7 @@ const AddCard = props => {
                   DIRECCION: {selectedClient.address}
                 </Typography>
                 <Typography variant='body2' sx={{ mb: 1, color: 'text.primary' }}>
-                  CONTACOTO{selectedClient.contact}
+                  CONTACTO{selectedClient.contact}
                 </Typography>
                 <Typography variant='body2' sx={{ mb: 1, color: 'text.primary' }}>
                   CORREO:{selectedClient.companyEmail}
@@ -325,12 +344,6 @@ const AddCard = props => {
       <Divider />
       <Grid container>
         <Grid item xs={12} sm={12} sx={{ p: 2, order: { sm: 1, xs: 2 } }}>
-          <Button size='small' onClick={handleAddRow}>
-            Add a row
-          </Button>
-          <Button size='small' onClick={handleDeleteRow}>
-            Delete a row
-          </Button>
           <div style={{ height: 200, width: '100%' }}>
             <DataGrid rows={rows} getRowId={row => row.mde_id} hideFooter={true} columns={columns} />
           </div>

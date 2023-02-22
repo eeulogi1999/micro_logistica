@@ -6,7 +6,7 @@ import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 
 const InvoiceEdit = () => {
   return (
-    <DatePickerWrapper sx={{ '& .react-datepicker-wrapper': { width: 'auto' } }}>
+    <DatePickerWrapper>
       <Edit id='4987' />
     </DatePickerWrapper>
   )
