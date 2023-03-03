@@ -8,14 +8,17 @@ import { useTheme } from '@mui/material/styles'
 import CardContent from '@mui/material/CardContent'
 import { DataGrid } from '@mui/x-data-grid'
 import axios from 'axios'
+import { Button, TextField } from '@mui/material'
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 
 const AddCard = props => {
   const theme = useTheme()
-
   const [rows, setRows] = useState(() => props.listcom)
+  const [p, setP] = useState({})
 
   const columns = [
-    { field: 'age_id', headerName: 'AGE', type: 'number', widht: 80 },
+    { field: 'age_id', headerName: 'AGE', type: 'number', widht: 80, align: 'left', headerAlign: 'center' },
     {
       field: 'mde_age_id',
       headerName: 'AGENTE',
@@ -120,6 +123,38 @@ const AddCard = props => {
   return (
     <Card>
       <CardContent>
+        <Grid sx={{ display: 'flex', justifyContent: 'center' }}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label='FECHA INICIO'
+              value={p.fecha_i}
+              inputFormat='DD-MM-YYYY'
+              onChange={e => {
+                setP({ ...p, fecha_i: e })
+              }}
+              renderInput={params => <TextField {...params} />}
+            />
+          </LocalizationProvider>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label='FECHA FIN'
+              value={p.fecha_f}
+              inputFormat='DD-MM-YYYY'
+              onChange={e => {
+                setP({ ...p, fecha_f: e })
+              }}
+              renderInput={params => <TextField {...params} />}
+            />
+          </LocalizationProvider>
+          <Button
+            onClick={() => {
+              console.log(p)
+            }}
+            variant='contained'
+          >
+            FILTRAR
+          </Button>
+        </Grid>
         <Grid item xs={12} sm={12} sx={{ p: 2, order: { sm: 1, xs: 2 } }}>
           <DataGrid autoHeight rows={rows} getRowId={row => row.age_id} hideFooter={true} columns={columns} />
         </Grid>
@@ -130,15 +165,19 @@ const AddCard = props => {
 
 export default AddCard
 
-export const getServerSideProps = async () => {
-  const { data: listcom } = await axios.get('https://sistema.companycacel.com/Gerencial/getListComisiones', {
-    headers: {
-      gcl_id: '1',
-      alm_id: '1',
-      periodo: '2023-01',
-      Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
+export const getServerSideProps = async (fecha_i = null, fecha_f = null) => {
+  //endpont https://sistema.companycacel.com
+  const { data: listcom } = await axios.get(
+    'http://localhost/sistema/Gerencial/getListComisiones' + '?fecha_i=' + fecha_i + '&fecha_f=' + fecha_f,
+    {
+      headers: {
+        gcl_id: '1',
+        alm_id: '1',
+        periodo: '2023-01',
+        Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
+      }
     }
-  })
+  )
 
   return {
     props: {

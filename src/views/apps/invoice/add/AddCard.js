@@ -358,6 +358,7 @@ const AddCard = props => {
               <Input
                 id='mov_subtotal'
                 placeholder='0.00'
+                startAdornment={<InputAdornment position='start'>S/</InputAdornment>}
                 sx={{ width: 150, align: 'right' }}
                 inputProps={{ 'aria-label': 'description' }}
                 value={mov.mov_subtotal}
@@ -369,6 +370,7 @@ const AddCard = props => {
                 id='mov_igv'
                 placeholder='0.00'
                 sx={{ width: 150, align: 'right' }}
+                startAdornment={<InputAdornment position='start'>S/</InputAdornment>}
                 inputProps={{ 'aria-label': 'description' }}
                 value={mov.mov_igv}
               />
@@ -377,10 +379,11 @@ const AddCard = props => {
               sx={{ mt: theme => `${theme.spacing(6)} !important`, mb: theme => `${theme.spacing(1.5)} !important` }}
             />
             <CalcWrapper>
-              <InputLabel htmlFor='mov_total'>NOTAS:</InputLabel>
+              <InputLabel htmlFor='mov_total'>TOTAL:</InputLabel>
               <Input
                 id='mov_total'
                 placeholder='0.00'
+                startAdornment={<InputAdornment position='start'>S/</InputAdornment>}
                 sx={{ width: 150, align: 'right' }}
                 inputProps={{ 'aria-label': 'description' }}
                 value={mov.mov_total}
