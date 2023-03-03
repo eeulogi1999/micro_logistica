@@ -23,6 +23,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import TableCell from '@mui/material/TableCell'
 import CardContent from '@mui/material/CardContent'
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -40,6 +41,9 @@ import Image from 'next/image'
 // **addes eeulopgio19999
 import logo_cacel from '/public/images/logos/logo_cacel.png'
 import { DataGrid } from '@mui/x-data-grid'
+import { Input } from '@mui/material'
+import { right } from '@popperjs/core'
+import { AttachMoney } from '@mui/icons-material'
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return (
@@ -152,34 +156,22 @@ const AddCard = props => {
     { mde_id: 2, mde_bie_id: 'Lannister', mde_q: 45, mde_p: 12, mde_importe: 234 }
   ]
 
-  const [id, setId] = useState(() => Math.max(...defaultRows.map(x => x['mde_id'])) + 1)
-
   const [rows, setRows] = useState(() => defaultRows)
-
-  function getImporte(params) {
-    return (params.row.mde_q ?? 0) * (params.row.mde_p ?? 0)
-  }
-
-  function setImporte(params) {
-    const mde_p = (params.value ?? 0) / (params.row.mde_q ?? 1)
-
-    return { ...params.row, mde_p }
-  }
+  const [mov, setMov] = useState({ mov_subtotal: 0, mov_igv: 0, mov_total: 0 })
 
   const handleAddRow = () => {
-    setId(id + 1)
+    let id = rows.length > 0 ? Math.max(...rows.map(x => x['mde_id'])) + 1 : 1
     setRows(prevRows => [...prevRows, { mde_id: id, mde_bie_id: '', mde_q: 1, mde_p: 1, mde_importe: 1 }])
   }
 
-  const handleDeleteRow = () => {
-    console.log()
+  const handleDeleteRow = id => {
+    setRows(prevRows => {
+      let rows = prevRows.filter(function (r) {
+        return r.mde_id !== id
+      })
 
-    // setRows(prevRows => {
-    //   let rows = prevRows;
-    //   delete prevRows[]
-
-    //   return [...rows.slice(0, rowToDeleteIndex), ...rows.slice(rowToDeleteIndex + 1)]
-    // })
+      return [...rows]
+    })
   }
 
   const columns = [
@@ -194,9 +186,14 @@ const AddCard = props => {
       flex: 1,
       align: 'right',
       editable: true,
-      valueGetter: getImporte,
-      valueSetter: setImporte,
-      sortComparator: (v1, v2) => v1.toString().localeCompare(v2.toString())
+      valueGetter: p => {
+        return (p.row.mde_q ?? 0) * (p.row.mde_p ?? 0)
+      },
+      valueSetter: p => {
+        const mde_p = (p.value ?? 0) / (p.row.mde_q ?? 1)
+
+        return { ...p.row, mde_p }
+      }
     },
     {
       field: 'mde_opt',
@@ -208,9 +205,14 @@ const AddCard = props => {
           add
         </Button>
       ),
-      renderCell: row => {
+      renderCell: p => {
         return (
-          <Button size='small' onClick={handleAddRow}>
+          <Button
+            size='small'
+            onClick={() => {
+              handleDeleteRow(p.id)
+            }}
+          >
             del
           </Button>
         )
@@ -340,41 +342,49 @@ const AddCard = props => {
           </Grid>
         </Grid>
       </CardContent>
-
       <Divider />
       <Grid container>
         <Grid item xs={12} sm={12} sx={{ p: 2, order: { sm: 1, xs: 2 } }}>
-          <div style={{ height: 200, width: '100%' }}>
-            <DataGrid rows={rows} getRowId={row => row.mde_id} hideFooter={true} columns={columns} />
-          </div>
+          <DataGrid autoHeight rows={rows} getRowId={row => row.mde_id} hideFooter={true} columns={columns} />
         </Grid>
       </Grid>
       <Divider />
-
       <CardContent>
         <Grid container>
           <Grid item xs={12} sm={9} sx={{ order: { sm: 1, xs: 2 } }}></Grid>
           <Grid item xs={12} sm={3} sx={{ mb: { sm: 0, xs: 4 }, order: { sm: 2, xs: 1 } }}>
             <CalcWrapper>
-              <Typography variant='body2'>Subtotal:</Typography>
-              <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary', lineHeight: '.25px' }}>
-                $1800
-              </Typography>
+              <InputLabel htmlFor='mov_subtotal'>SUBTOTAL:</InputLabel>
+              <Input
+                id='mov_subtotal'
+                placeholder='0.00'
+                sx={{ width: 150, align: 'right' }}
+                inputProps={{ 'aria-label': 'description' }}
+                value={mov.mov_subtotal}
+              />
             </CalcWrapper>
             <CalcWrapper>
-              <Typography variant='body2'>Discount:</Typography>
-              <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary', lineHeight: '.25px' }}>
-                $28
-              </Typography>
+              <InputLabel htmlFor='mov_igv'>IGV (18%):</InputLabel>
+              <Input
+                id='mov_igv'
+                placeholder='0.00'
+                sx={{ width: 150, align: 'right' }}
+                inputProps={{ 'aria-label': 'description' }}
+                value={mov.mov_igv}
+              />
             </CalcWrapper>
             <Divider
               sx={{ mt: theme => `${theme.spacing(6)} !important`, mb: theme => `${theme.spacing(1.5)} !important` }}
             />
             <CalcWrapper>
-              <Typography variant='body2'>Total:</Typography>
-              <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary', lineHeight: '.25px' }}>
-                $1690
-              </Typography>
+              <InputLabel htmlFor='mov_total'>NOTAS:</InputLabel>
+              <Input
+                id='mov_total'
+                placeholder='0.00'
+                sx={{ width: 150, align: 'right' }}
+                inputProps={{ 'aria-label': 'description' }}
+                value={mov.mov_total}
+              />
             </CalcWrapper>
           </Grid>
         </Grid>
@@ -383,14 +393,14 @@ const AddCard = props => {
       <Divider sx={{ my: theme => `${theme.spacing(1)} !important` }} />
 
       <CardContent sx={{ pt: 4 }}>
-        <InputLabel htmlFor='invoice-note'>Note:</InputLabel>
+        <InputLabel htmlFor='invoice-note'>NOTAS:</InputLabel>
         <TextField
           rows={2}
           fullWidth
           multiline
           id='invoice-note'
           sx={{ '& .MuiInputBase-input': { color: 'text.secondary' } }}
-          defaultValue='It was a pleasure working with you and your team. We hope you will keep us in mind for future freelance projects. Thank You!'
+          placeholder='Obserbaciones'
         />
       </CardContent>
     </Card>

@@ -28,6 +28,11 @@ const navigation = () => {
           path: '/apps/invoice/add'
         }
       ]
+    },
+    {
+      title: 'COMISIONES',
+      path: '/apps/comisiones',
+      icon: 'uil:chart-pie-alt'
     }
   ]
 }
