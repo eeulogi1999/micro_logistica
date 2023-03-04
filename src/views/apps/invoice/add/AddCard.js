@@ -176,7 +176,21 @@ const AddCard = props => {
 
   const columns = [
     { field: 'mde_id', headerName: 'NRO', headerAlign: 'center', editable: true, flex: 1 },
-    { field: 'mde_bie_id', headerName: 'MATERIAL', editable: true, flex: 1 },
+    {
+      field: 'mde_bie_id',
+      headerName: 'MATERIAL',
+      editable: true,
+      flex: 1,
+      renderEditCell: p => {
+        return (
+          <Select fullWidth label='Age'>
+            <MenuItem value={10}>Ten</MenuItem>
+            <MenuItem value={20}>Twenty</MenuItem>
+            <MenuItem value={30}>Thirty</MenuItem>
+          </Select>
+        )
+      }
+    },
     { field: 'mde_q', headerName: 'CANTIDAD', headerAlign: 'center', align: 'right', editable: true, flex: 1 },
     { field: 'mde_p', headerName: 'PRECIO', headerAlign: 'center', align: 'right', editable: true, flex: 1 },
     {
@@ -345,7 +359,18 @@ const AddCard = props => {
       <Divider />
       <Grid container>
         <Grid item xs={12} sm={12} sx={{ p: 2, order: { sm: 1, xs: 2 } }}>
-          <DataGrid autoHeight rows={rows} getRowId={row => row.mde_id} hideFooter={true} columns={columns} />
+          <DataGrid
+            autoHeight
+            sx={{
+              "& .MuiDataGrid-cell[data-field='mde_bie_id']": {
+                padding: 0
+              }
+            }}
+            rows={rows}
+            getRowId={row => row.mde_id}
+            hideFooter={true}
+            columns={columns}
+          />
         </Grid>
       </Grid>
       <Divider />
