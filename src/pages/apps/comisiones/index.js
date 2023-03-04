@@ -8,14 +8,27 @@ import { useTheme } from '@mui/material/styles'
 import CardContent from '@mui/material/CardContent'
 import { DataGrid } from '@mui/x-data-grid'
 import axios from 'axios'
-import { Button, TextField } from '@mui/material'
+import { Box, Button, TextField } from '@mui/material'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import dayjs from 'dayjs'
+
+function getData(fi, ff) {
+  return fetch('/api/server' + '?fi=' + fi + '&ff=' + ff)
+    .then(res => res.json())
+    .then(data => {
+      return data
+    })
+}
 
 const AddCard = props => {
   const theme = useTheme()
-  const [rows, setRows] = useState(() => props.listcom)
-  const [p, setP] = useState({})
+  const [p, setP] = useState({ fi: dayjs('2023-01-01'), ff: dayjs('2023-03-01') })
+
+  const [rows, setRows] = useState(
+    async () =>
+      await getData(p.fi.$d.toLocaleString('af-ZA').split(' ')[0], p.ff.$d.toLocaleString('af-ZA').split(' ')[0])
+  )
 
   const columns = [
     { field: 'age_id', headerName: 'AGE', type: 'number', widht: 80, align: 'left', headerAlign: 'center' },
@@ -127,10 +140,10 @@ const AddCard = props => {
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label='FECHA INICIO'
-              value={p.fecha_i}
+              value={p.fi}
               inputFormat='DD-MM-YYYY'
               onChange={e => {
-                setP({ ...p, fecha_i: e })
+                setP({ ...p, fi: e })
               }}
               renderInput={params => <TextField {...params} />}
             />
@@ -138,50 +151,34 @@ const AddCard = props => {
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label='FECHA FIN'
-              value={p.fecha_f}
+              value={p.ff}
               inputFormat='DD-MM-YYYY'
               onChange={e => {
-                setP({ ...p, fecha_f: e })
+                setP({ ...p, ff: e })
               }}
               renderInput={params => <TextField {...params} />}
             />
           </LocalizationProvider>
           <Button
-            onClick={() => {
-              console.log(p)
+            onClick={async () => {
+              setRows(
+                await getData(
+                  p.fi.$d.toLocaleString('af-ZA').split(' ')[0],
+                  p.ff.$d.toLocaleString('af-ZA').split(' ')[0]
+                )
+              )
             }}
             variant='contained'
           >
             FILTRAR
           </Button>
         </Grid>
-        <Grid item xs={12} sm={12} sx={{ p: 2, order: { sm: 1, xs: 2 } }}>
-          <DataGrid autoHeight rows={rows} getRowId={row => row.age_id} hideFooter={true} columns={columns} />
-        </Grid>
+        <Box sx={{ height: 400, width: '100%' }}>
+          <DataGrid rows={rows} getRowId={row => row.age_id} columns={columns} />
+        </Box>
       </CardContent>
     </Card>
   )
 }
 
 export default AddCard
-
-export const getServerSideProps = async (fecha_i = null, fecha_f = null) => {
-  //endpont https://sistema.companycacel.com
-  const { data: listcom } = await axios.get(
-    'http://localhost/sistema/Gerencial/getListComisiones' + '?fecha_i=' + fecha_i + '&fecha_f=' + fecha_f,
-    {
-      headers: {
-        gcl_id: '1',
-        alm_id: '1',
-        periodo: '2023-01',
-        Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
-      }
-    }
-  )
-
-  return {
-    props: {
-      listcom
-    }
-  }
-}
