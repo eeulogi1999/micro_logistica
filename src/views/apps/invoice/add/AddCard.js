@@ -40,7 +40,7 @@ import Image from 'next/image'
 
 // **addes eeulopgio19999
 import logo_cacel from '/public/images/logos/logo_cacel.png'
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, useGridApiRef } from '@mui/x-data-grid'
 import { Input } from '@mui/material'
 import { right } from '@popperjs/core'
 import { AttachMoney } from '@mui/icons-material'
@@ -150,10 +150,12 @@ const AddCard = props => {
     toggleAddCustomerDrawer()
   }
 
+  const apiRef = useGridApiRef()
+
   //AADD DATATABLES
   const defaultRows = [
-    { mde_id: 1, mde_bie_id: 'Snow', mde_q: 23, mde_p: 23, mde_importe: 234 },
-    { mde_id: 2, mde_bie_id: 'Lannister', mde_q: 45, mde_p: 12, mde_importe: 234 }
+    { mde_id: 1, mde_bie_id: 10, mde_q: 23, mde_p: 23, mde_importe: 234 },
+    { mde_id: 2, mde_bie_id: 20, mde_q: 45, mde_p: 12, mde_importe: 234 }
   ]
 
   const [rows, setRows] = useState(() => defaultRows)
@@ -181,15 +183,11 @@ const AddCard = props => {
       headerName: 'MATERIAL',
       editable: true,
       flex: 1,
-      renderEditCell: p => {
-        return (
-          <Select fullWidth label='Age'>
-            <MenuItem value={10}>Ten</MenuItem>
-            <MenuItem value={20}>Twenty</MenuItem>
-            <MenuItem value={30}>Thirty</MenuItem>
-          </Select>
-        )
-      }
+      type: 'singleSelect',
+      valueOptions: [
+        { value: 10, label: 'Brazil' },
+        { value: 20, label: 'France' }
+      ]
     },
     { field: 'mde_q', headerName: 'CANTIDAD', headerAlign: 'center', align: 'right', editable: true, flex: 1 },
     { field: 'mde_p', headerName: 'PRECIO', headerAlign: 'center', align: 'right', editable: true, flex: 1 },
@@ -361,6 +359,7 @@ const AddCard = props => {
         <Grid item xs={12} sm={12} sx={{ p: 2, order: { sm: 1, xs: 2 } }}>
           <DataGrid
             autoHeight
+            apiRef={apiRef}
             sx={{
               "& .MuiDataGrid-cell[data-field='mde_bie_id']": {
                 padding: 0
@@ -370,6 +369,22 @@ const AddCard = props => {
             getRowId={row => row.mde_id}
             hideFooter={true}
             columns={columns}
+            onCellEditStop={(p, e) => {
+              setRows(prevRows => {
+                let updaterow = {}
+
+                let rows = prevRows.filter(function (r) {
+                  if (r.mde_id == p.id) {
+                    updaterow = r
+                  }
+
+                  return r.mde_id !== p.id
+                })
+                updaterow[p.field] = e.target.value
+
+                return [...rows, updaterow]
+              })
+            }}
           />
         </Grid>
       </Grid>
