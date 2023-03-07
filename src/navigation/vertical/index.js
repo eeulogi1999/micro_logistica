@@ -8,26 +8,9 @@ const navigation = () => {
       path: '/dashboards/crm'
     },
     {
-      title: 'Invoice',
+      title: 'COMPRAS',
       icon: 'mdi:file-document-outline',
-      children: [
-        {
-          title: 'List',
-          path: '/apps/invoice/list'
-        },
-        {
-          title: 'Preview',
-          path: '/apps/invoice/preview'
-        },
-        {
-          title: 'Edit',
-          path: '/apps/invoice/edit'
-        },
-        {
-          title: 'Add',
-          path: '/apps/invoice/add'
-        }
-      ]
+      path: '/apps/compras'
     },
     {
       title: 'COMISIONES',
