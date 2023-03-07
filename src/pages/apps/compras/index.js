@@ -55,20 +55,68 @@ const CustomSelectItem = styled(MenuItem)(({ theme }) => ({
   backgroundColor: 'transparent !important',
   '&:hover': { backgroundColor: `${alpha(theme.palette.success.main, 0.1)} !important` }
 }))
-const now = new Date()
-
-const defaultRows = [
-  { mde_id: 1, mde_bie_id: 4, mde_q: 23, mde_p: 23, mde_importe: 234 },
-  { mde_id: 2, mde_bie_id: 5, mde_q: 45, mde_p: 12, mde_importe: 234 }
-]
 
 const AddCard = props => {
+  ;(function () {
+    /**
+     * Ajuste decimal de un número.
+     *
+     * @param {String}  type  El tipo de ajuste.
+     * @param {Number}  value El número.
+     * @param {Integer} exp   El exponente (El logaritmo de ajuste en base 10).
+     * @returns {Number} El valor ajustado.
+     */
+    function decimalAdjust(type, value, exp) {
+      // Si exp es undefined o cero...
+      if (typeof exp === 'undefined' || +exp === 0) {
+        return Math[type](value)
+      }
+      value = +value
+      exp = +exp
+
+      // Si el valor no es un número o exp no es un entero...
+      if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+        return NaN
+      }
+
+      // Shift
+      value = value.toString().split('e')
+      value = Math[type](+(value[0] + 'e' + (value[1] ? +value[1] - exp : -exp)))
+
+      // Shift back
+      value = value.toString().split('e')
+
+      return +(value[0] + 'e' + (value[1] ? +value[1] + exp : exp))
+    }
+
+    // Decimal round
+    if (!Math.round10) {
+      Math.round10 = function (value, exp) {
+        return decimalAdjust('round', value, exp)
+      }
+    }
+
+    // Decimal floor
+    if (!Math.floor10) {
+      Math.floor10 = function (value, exp) {
+        return decimalAdjust('floor', value, exp)
+      }
+    }
+
+    // Decimal ceil
+    if (!Math.ceil10) {
+      Math.ceil10 = function (value, exp) {
+        return decimalAdjust('ceil', value, exp)
+      }
+    }
+  })()
+
   const { clients, selectedClient, bie, age, gt4 } = props
 
   const [selected, setSelected] = useState('')
   const [moneda, setMoneda] = useState(1)
   const [issueDate, setIssueDate] = useState(new Date())
-  const [rows, setRows] = useState(() => defaultRows)
+  const [rows, setRows] = useState([])
   const [mov, setMov] = useState({ mov_subtotal: 0, mov_igv: 0, mov_total: 0 })
 
   //AADD DATATABLES
@@ -89,7 +137,7 @@ const AddCard = props => {
   }
 
   const columns = [
-    { field: 'mde_id', headerName: 'NRO', headerAlign: 'center', editable: true, flex: 1 },
+    { field: 'mde_id', headerName: 'NRO', headerAlign: 'center', editable: true, widht: 80 },
     {
       field: 'mde_bie_id',
       headerName: 'MATERIAL',
@@ -99,7 +147,7 @@ const AddCard = props => {
       valueOptions: (() => {
         let ops = []
         for (const i in bie) {
-          ops.push({ value: parseInt(bie[i].bie_id), label: bie[i].bie_nombre })
+          ops.push({ value: parseInt(bie[i].bie_id), label: bie[i].bie_nombre, bie_codigo: bie[i].bie_codigo })
         }
 
         return ops
@@ -107,11 +155,27 @@ const AddCard = props => {
       valueFormatter: p => {
         const option = p.api.getColumn(p.field).valueOptions.find(({ value }) => value == p.value)
 
-        return option.label
+        return option.bie_codigo + ' - ' + option.label
       }
     },
-    { field: 'mde_q', headerName: 'CANTIDAD', headerAlign: 'center', align: 'right', editable: true, flex: 1 },
-    { field: 'mde_p', headerName: 'PRECIO', headerAlign: 'center', align: 'right', editable: true, flex: 1 },
+    {
+      field: 'mde_q',
+      headerName: 'CANTIDAD',
+      headerAlign: 'center',
+      align: 'right',
+      editable: true,
+      flex: 1,
+      valueFormatter: p => Math.ceil10(p.value, -2).toFixed(2)
+    },
+    {
+      field: 'mde_p',
+      headerName: 'PRECIO',
+      headerAlign: 'center',
+      align: 'right',
+      editable: true,
+      flex: 1,
+      valueFormatter: p => Math.ceil10(p.value, -2).toFixed(2)
+    },
     {
       field: 'mde_importe',
       headerName: 'IMPORTE',
@@ -119,14 +183,7 @@ const AddCard = props => {
       flex: 1,
       align: 'right',
       editable: true,
-      valueGetter: p => {
-        return (p.row.mde_q ?? 0) * (p.row.mde_p ?? 0)
-      },
-      valueSetter: p => {
-        const mde_p = (p.value ?? 0) / (p.row.mde_q ?? 1)
-
-        return { ...p.row, mde_p }
-      }
+      valueFormatter: p => Math.ceil10(p.value, -2).toFixed(2)
     },
     {
       field: 'mde_opt',
@@ -309,7 +366,16 @@ const AddCard = props => {
 
                   return r.mde_id !== p.id
                 })
-                updaterow[p.field] = p.value
+                if (p.field == 'mde_q') {
+                  updaterow.mde_importe = updaterow.mde_p * p.value
+                }
+                if (p.field == 'mde_p') {
+                  updaterow.mde_importe = updaterow.mde_q * p.value
+                }
+                if (p.field == 'mde_importe') {
+                  updaterow.mde_p = p.value / updaterow.mde_q
+                }
+                updaterow[p.field] = parseFloat(p.value)
 
                 return [...rows, updaterow]
               })
@@ -330,7 +396,14 @@ const AddCard = props => {
                 startAdornment={<InputAdornment position='start'>S/</InputAdornment>}
                 sx={{ width: 150, align: 'right' }}
                 inputProps={{ 'aria-label': 'description' }}
-                value={rows => rows.reduce((s, r) => s + r, 0)}
+                value={
+                  rows.length > 0
+                    ? Math.ceil10(
+                        rows.map(r => r['mde_importe']).reduce((a, b) => a + b),
+                        -2
+                      ).toFixed(2)
+                    : 0
+                }
               />
             </CalcWrapper>
             <CalcWrapper>
@@ -341,7 +414,7 @@ const AddCard = props => {
                 sx={{ width: 150, align: 'right' }}
                 startAdornment={<InputAdornment position='start'>S/</InputAdornment>}
                 inputProps={{ 'aria-label': 'description' }}
-                value={mov.mov_igv}
+                value={mov.mov_igv.toFixed(2)}
               />
             </CalcWrapper>
             <Divider
@@ -355,7 +428,14 @@ const AddCard = props => {
                 startAdornment={<InputAdornment position='start'>S/</InputAdornment>}
                 sx={{ width: 150, align: 'right' }}
                 inputProps={{ 'aria-label': 'description' }}
-                value={mov.mov_total}
+                value={
+                  rows.length > 0
+                    ? Math.ceil10(
+                        rows.map(r => r['mde_importe']).reduce((a, b) => a + b),
+                        -2
+                      ).toFixed(2)
+                    : 0
+                }
               />
             </CalcWrapper>
           </Grid>
