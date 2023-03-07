@@ -395,7 +395,7 @@ const AddCard = props => {
                 placeholder='0.00'
                 startAdornment={<InputAdornment position='start'>S/</InputAdornment>}
                 sx={{ width: 150, align: 'right' }}
-                inputProps={{ 'aria-label': 'description' }}
+                inputProps={{ 'aria-label': 'description', style: { textAlign: 'right' } }}
                 value={
                   rows.length > 0
                     ? Math.ceil10(
@@ -413,7 +413,7 @@ const AddCard = props => {
                 placeholder='0.00'
                 sx={{ width: 150, align: 'right' }}
                 startAdornment={<InputAdornment position='start'>S/</InputAdornment>}
-                inputProps={{ 'aria-label': 'description' }}
+                inputProps={{ 'aria-label': 'description', style: { textAlign: 'right' } }}
                 value={mov.mov_igv.toFixed(2)}
               />
             </CalcWrapper>
@@ -426,8 +426,8 @@ const AddCard = props => {
                 id='mov_total'
                 placeholder='0.00'
                 startAdornment={<InputAdornment position='start'>S/</InputAdornment>}
-                sx={{ width: 150, align: 'right' }}
-                inputProps={{ 'aria-label': 'description' }}
+                sx={{ width: 150, textAlign: 'right' }}
+                inputProps={{ 'aria-label': 'description', style: { textAlign: 'right' } }}
                 value={
                   rows.length > 0
                     ? Math.ceil10(
