@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, forwardRef } from 'react'
+import { useState } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -12,15 +12,8 @@ import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import InputAdornment from '@mui/material/InputAdornment'
 import { styled, alpha, useTheme } from '@mui/material/styles'
-import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import CardContent from '@mui/material/CardContent'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
-// ** Third Party Imports
-import DatePicker from 'react-datepicker'
 
 import Image from 'next/image'
 
@@ -29,17 +22,14 @@ import logo_cacel from '/public/images/logos/logo_cacel.png'
 import { DataGrid } from '@mui/x-data-grid'
 import { Input } from '@mui/material'
 import axios from 'axios'
-
-const CustomInput = forwardRef(({ ...props }, ref) => {
-  return (
-    <TextField
-      size='small'
-      inputRef={ref}
-      {...props}
-      sx={{ '& .MuiInputBase-input': { color: 'text.secondary' }, width: '100%' }}
-    />
-  )
-})
+import Select from 'react-select'
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import dayjs from 'dayjs'
+import { red } from '@mui/material/colors'
+import themeConfig from 'src/configs/themeConfig'
+import themeOptions from 'src/@core/theme/ThemeOptions'
+import { ThemeContext } from '@emotion/react'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -115,9 +105,9 @@ const AddCard = props => {
 
   const [selected, setSelected] = useState('')
   const [moneda, setMoneda] = useState(1)
-  const [issueDate, setIssueDate] = useState(new Date())
   const [rows, setRows] = useState([])
-  const [mov, setMov] = useState({ mov_subtotal: 0, mov_igv: 0, mov_total: 0 })
+  const [mov, setMov] = useState({ mov_subtotal: 0, mov_igv: 0, mov_total: 0, mov_fechaE: dayjs(new Date()) })
+  const theme = useTheme()
 
   //AADD DATATABLES
 
@@ -134,6 +124,10 @@ const AddCard = props => {
 
       return [...rows]
     })
+  }
+
+  const colourStyles = {
+    option: styles => ({ ...styles, zIndex: '18000', position: 'relative' })
   }
 
   const columns = [
@@ -158,10 +152,34 @@ const AddCard = props => {
         return option.bie_codigo + ' - ' + option.label
       }
     },
+
+    // {
+    //   field: 'mde_bie_id',
+    //   headerName: 'MATERIAL',
+    //   editable: true,
+    //   flex: 1,
+    //   renderEditCell: p => (
+    //     <Select
+    //       sx={{ zIndex: '100' }}
+    //       isClearable={true}
+    //       options={(() => {
+    //         let ops = []
+    //         for (const i in bie) {
+    //           ops.push({ value: parseInt(bie[i].bie_id), label: bie[i].bie_nombre, bie_codigo: bie[i].bie_codigo })
+    //         }
+    //         console.log(ops)
+
+    //         return ops
+    //       })()}
+    //       styles={colourStyles}
+    //     />
+    //   )
+    // },
     {
       field: 'mde_q',
       headerName: 'CANTIDAD',
       headerAlign: 'center',
+      type: 'number',
       align: 'right',
       editable: true,
       flex: 1,
@@ -171,6 +189,7 @@ const AddCard = props => {
       field: 'mde_p',
       headerName: 'PRECIO',
       headerAlign: 'center',
+      type: 'number',
       align: 'right',
       editable: true,
       flex: 1,
@@ -180,6 +199,7 @@ const AddCard = props => {
       field: 'mde_importe',
       headerName: 'IMPORTE',
       headerAlign: 'center',
+      type: 'number',
       flex: 1,
       align: 'right',
       editable: true,
@@ -254,8 +274,34 @@ const AddCard = props => {
               <Typography variant='body1' sx={{ mb: 5, fontWeight: 700, lineHeight: 1.2 }}>
                 NOTA DE ENTRADA
               </Typography>
-              <Typography variant='body1' sx={{ mb: 1, color: 'red', fontSize: 23, fontWeight: 700, lineHeight: 1.2 }}>
-                NE01-00000100
+              <Typography variant='string' sx={{ mb: 1, color: 'red', fontSize: 23, fontWeight: 700, lineHeight: 1.2 }}>
+                NE01-
+                <Input
+                  id='mov_igv'
+                  sx={{
+                    width: 150
+                  }}
+                  type='number'
+                  startAdornment={
+                    <InputAdornment
+                      position='start'
+                      sx={{
+                        '.MuiTypography-root': {
+                          color: 'red',
+                          fontSize: 23,
+                          fontWeight: 700,
+                          lineHeight: 1.2
+                        }
+                      }}
+                    >
+                      0000
+                    </InputAdornment>
+                  }
+                  inputProps={{
+                    'aria-label': 'description',
+                    style: { color: 'red', fontSize: 23, fontWeight: 700, lineHeight: 1.2 }
+                  }}
+                />
               </Typography>
             </Box>
           </Grid>
@@ -271,33 +317,63 @@ const AddCard = props => {
               Agente:
             </Typography>
             <Select
-              fullWidth
-              size='small'
-              value={selected}
-              onChange={e => {
-                setSelected(e.target.value)
-              }}
-              sx={{ mb: 4 }}
-            >
-              <CustomSelectItem value=''>
-                <Box sx={{ display: 'flex', alignItems: 'center', color: 'success.main', '& svg': { mr: 2 } }}>
-                  <Icon icon='mdi:plus' fontSize={20} />
-                  Nuevo
-                </Box>
-              </CustomSelectItem>
-              {age !== undefined &&
-                age.map(a => (
-                  <MenuItem key={a.age_id} value={parseInt(a.age_id)}>
-                    {a.age_gpe_id
+              isClearable={true}
+              name='mov_age_id'
+              options={(() => {
+                let opt = []
+                for (const i in age) {
+                  let a = age[i]
+                  opt.push({
+                    value: parseInt(a.age_id),
+                    label: a.age_gpe_id
                       ? a.age_gpe_id.gpe_identificacion +
                         ' - ' +
                         a.age_gpe_id.gpe_nombre +
                         ', ' +
                         a.age_gpe_id.gpe_apellidos
-                      : a.age_gem_id.gem_ruc + ' - ' + a.age_gem_id.gem_razonsocial}
-                  </MenuItem>
-                ))}
-            </Select>
+                      : a.age_gem_id.gem_ruc + ' - ' + a.age_gem_id.gem_razonsocial
+                  })
+                }
+
+                return opt
+              })()}
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  borderColor: state.isFocused ? theme.palette.primary.main : base.borderColor,
+                  isFocused: theme.palette.primary.main,
+                  ':hover': { borderColor: theme.palette.primary.main },
+                  boxShadow: ''
+                }),
+                menu: (base, state) => ({
+                  ...base,
+                  zIndex: '5'
+                }),
+                option: (base, { data, isDisabled, isFocused, isSelected }) => ({
+                  ...base,
+                  backgroundColor: isDisabled
+                    ? undefined
+                    : isSelected
+                    ? theme.palette.primary.main
+                    : isFocused
+                    ? theme.palette.primary.main
+                    : undefined,
+                  cursor: isDisabled ? 'not-allowed' : 'default',
+
+                  ':active': {
+                    ...base[':active'],
+                    backgroundColor: !isDisabled ? (isSelected ? data.color : theme.palette.primary.main) : undefined
+                  }
+                }),
+                input: (base, state) => ({
+                  ...base,
+                  borderColor: state.isFocused ? theme.palette.primary.main : base.borderColor,
+                  isFocused: theme.palette.primary.main,
+                  ':hover': { borderColor: theme.palette.primary.main },
+                  boxShadow: ''
+                })
+              }}
+            />
             {selectedClient !== null && selectedClient !== undefined ? (
               <div>
                 <Typography variant='body2' sx={{ mb: 1, color: 'text.primary' }}>
@@ -324,24 +400,34 @@ const AddCard = props => {
           >
             <Box sx={{ mb: 2 }}>
               <Typography variant='subtitle2'>Moneda</Typography>
-              <Select fullWidth size='small' value={moneda} sx={{ mb: 4 }} onChange={e => setMoneda(e.target.value)}>
-                <CustomSelectItem value=''></CustomSelectItem>
-                {gt4 !== undefined &&
-                  gt4.map(g => (
-                    <MenuItem key={g.gt4_id} value={parseInt(g.gt4_id)}>
-                      {g.gt4_descripcion}
-                    </MenuItem>
-                  ))}
-              </Select>
+              <Select
+                isClearable={true}
+                defaultValue={{ value: 1, label: 'SOLES' }}
+                name='mov_gt4_id'
+                options={(() => {
+                  let opt = []
+                  for (const i in gt4) {
+                    let g = gt4[i]
+                    opt.push({
+                      value: parseInt(g.gt4_id),
+                      label: g.gt4_descripcion
+                    })
+                  }
+
+                  return opt
+                })()}
+              />
             </Box>
             <Box sx={{ mb: 4 }}>
-              <Typography variant='subtitle2'>FECHA:</Typography>
-              <DatePicker
-                id='issue-date'
-                selected={issueDate}
-                customInput={<CustomInput />}
-                onChange={date => setIssueDate(date)}
-              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  sx={{ width: '100%' }}
+                  format='DD/MM/YYYY'
+                  value={mov.mov_fechaE}
+                  name='mov_fechaE'
+                  onChange={e => setMov({ ...mov, mov_fechaE: e })}
+                />
+              </LocalizationProvider>
             </Box>
           </Grid>
         </Grid>
@@ -402,7 +488,7 @@ const AddCard = props => {
                         rows.map(r => r['mde_importe']).reduce((a, b) => a + b),
                         -2
                       ).toFixed(2)
-                    : 0
+                    : '0.00'
                 }
               />
             </CalcWrapper>
@@ -434,7 +520,7 @@ const AddCard = props => {
                         rows.map(r => r['mde_importe']).reduce((a, b) => a + b),
                         -2
                       ).toFixed(2)
-                    : 0
+                    : '0.00'
                 }
               />
             </CalcWrapper>
