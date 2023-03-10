@@ -85,7 +85,10 @@ const HorizontalLayout = props => {
 
   return (
     <HorizontalLayoutWrapper className='layout-wrapper'>
-      <MainContentWrapper className='layout-content-wrapper' sx={{ ...(contentHeightFixed && { maxHeight: '100vh' }) }}>
+      <MainContentWrapper
+        className='layout-content-wrapper'
+        sx={{ ...(contentHeightFixed && { maxHeight: '100vh' }), displayPrint: 'none' }}
+      >
         <AppBar
           color='default'
           elevation={skin === 'bordered' ? 0 : 3}
@@ -95,6 +98,7 @@ const HorizontalLayout = props => {
             alignItems: 'center',
             color: 'text.primary',
             justifyContent: 'center',
+            displayPrint: 'none',
             backgroundColor: 'background.paper',
             ...(appBar === 'static' && { zIndex: 13 }),
             ...(skin === 'bordered' && { borderBottom: theme => `1px solid ${theme.palette.divider}` }),
@@ -113,6 +117,7 @@ const HorizontalLayout = props => {
             className='layout-navbar'
             sx={{
               width: '100%',
+              displayPrint: 'none',
               ...(navHidden ? {} : { borderBottom: theme => `1px solid ${theme.palette.divider}` })
             }}
           >
@@ -120,6 +125,7 @@ const HorizontalLayout = props => {
               className='navbar-content-container'
               sx={{
                 mx: 'auto',
+                displayPrint: 'none',
                 ...(contentWidth === 'boxed' && { '@media (min-width:1440px)': { maxWidth: 1440 } }),
                 minHeight: theme => `${theme.mixins.toolbar.minHeight - 1}px !important`
               }}
@@ -141,6 +147,7 @@ const HorizontalLayout = props => {
                 className='horizontal-nav-content-container'
                 sx={{
                   mx: 'auto',
+                  displayPrint: 'none',
                   ...(contentWidth === 'boxed' && { '@media (min-width:1440px)': { maxWidth: 1440 } }),
                   minHeight: theme => `${theme.mixins.toolbar.minHeight - (skin === 'bordered' ? 1 : 0)}px !important`
                 }}
@@ -156,6 +163,7 @@ const HorizontalLayout = props => {
         <ContentWrapper
           className='layout-page-content'
           sx={{
+            displayPrint: 'none',
             ...(contentHeightFixed && { display: 'flex', overflow: 'hidden' }),
             ...(contentWidth === 'boxed' && {
               mx: 'auto',

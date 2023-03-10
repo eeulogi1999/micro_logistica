@@ -12,8 +12,9 @@ import DialogActions from '@mui/material/DialogActions'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import CreatePdf from 'src/pages/apps/compras/pdf'
 
-const DialogCustomized = () => {
+const DialogCustomized = props => {
   // ** State
   const [open, setOpen] = useState(false)
   const handleClickOpen = () => setOpen(true)
@@ -24,10 +25,10 @@ const DialogCustomized = () => {
       <Button variant='outlined' onClick={handleClickOpen}>
         Open dialog
       </Button>
-      <Dialog onClose={handleClose} aria-labelledby='customized-dialog-title' open={open}>
-        <DialogTitle id='customized-dialog-title' sx={{ p: 4 }}>
-          <Typography variant='h6' component='span'>
-            Modal title
+      <Dialog onClose={handleClose} fullWidth maxWidth='xl' aria-labelledby='customized-dialog-title' open={open}>
+        <DialogTitle id='customized-dialog-title' sx={{ p: 4, paddingBottom: 0 }}>
+          <Typography variant='body1' component='span'>
+            VISTA PREVIA
           </Typography>
           <IconButton
             aria-label='close'
@@ -38,19 +39,7 @@ const DialogCustomized = () => {
           </IconButton>
         </DialogTitle>
         <DialogContent dividers sx={{ p: 4 }}>
-          <Typography gutterBottom>
-            Chupa chups jelly-o candy sweet roll wafer cake chocolate bar. Brownie sweet roll topping cake chocolate
-            cake cheesecake tiramisu chocolate cake. Jujubes liquorice chocolate bar pastry. Chocolate jujubes caramels
-            pastry.
-          </Typography>
-          <Typography gutterBottom>
-            Ice cream marshmallow dragée bonbon croissant. Carrot cake sweet donut ice cream bonbon oat cake danish
-            sugar plum. Gingerbread gummies marzipan gingerbread.
-          </Typography>
-          <Typography gutterBottom>
-            Soufflé toffee ice cream. Jelly-o pudding sweet roll bonbon. Marshmallow liquorice icing. Jelly beans
-            chocolate bar chocolate marzipan candy fruitcake jujubes.
-          </Typography>
+          <CreatePdf urlImg={props.urlImg} />
         </DialogContent>
         <DialogActions sx={{ p: theme => `${theme.spacing(3)} !important` }}>
           <Button onClick={handleClose}>Save changes</Button>
