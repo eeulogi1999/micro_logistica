@@ -1,5 +1,5 @@
 // ** React Imports
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -19,18 +19,19 @@ import Image from 'next/image'
 
 // **addes eeulopgio19999
 import logo_cacel from '/public/images/logos/logo_cacel.png'
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import { Input } from '@mui/material'
 import axios from 'axios'
 import Select from 'react-select'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
-import AddActions from 'src/views/apps/invoice/add/AddActions'
+import AddActions from 'src/pages/apps/compras/AddActions'
 import { Document, Page, PDFViewer, StyleSheet, Text, View } from '@react-pdf/renderer'
 import html2canvas from 'html2canvas'
 import CreatePdf from '/src/pages/apps/compras/pdf'
 import DialogCustomized from 'src/views/components/dialogs/DialogCustomized'
+import { ConstructionOutlined, Delete, FileCopy, Security } from '@mui/icons-material'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -159,24 +160,49 @@ const AppCompras = props => {
   const [mov, setMov] = useState({
     mov_igv: 0,
     mov_fechaE: new Date().toLocaleString('af-ZA').split(' ')[0],
-    mov_num: 1,
+    mov_numero: 1,
     mov_age_id: 0,
-    mov_gt4_id: (() => gt4.filter(r => r.value === 1))()
+    mov_gt4_id: (() => gt4.filter(r => r.value === 1))(),
+    mov_t10_id: 49,
+    mov_t12_id: 2,
+    mov_serie: 'NE01'
   })
   const printRef = useRef()
   const [urlImg, setUrlImg] = useState('')
 
   const theme = useTheme()
 
-  console.log(rows)
-  console.log(mov)
-  console.log(urlImg)
+  useEffect(() => {
+    fetch('/api/apiCMS/?url=Movimientos/getNumMovimiento', {
+      method: 'POST',
+      body: JSON.stringify({
+        mov_t12_id: mov.mov_t12_id,
+        mov_t10_id: mov.mov_t10_id
+      })
+    })
+      .then(r => r.json())
+      .then(r => {
+        setMov({ ...mov, mov_numero: parseInt(r.mov_numero) })
+      })
+  }, [])
 
   //AADD DATATABLES
 
   const handleAddRow = () => {
     let id = rows.length > 0 ? Math.max(...rows.map(x => x['mde_id'])) + 1 : 1
-    setRows(prevRows => [...prevRows, { mde_id: id, mde_bie_id: 4, mde_q: 1, mde_p: 1, mde_importe: 1 }])
+    setRows(prevRows => [
+      ...prevRows,
+      {
+        mde_id: id,
+        mde_t6m_id: 23,
+        mde_gta_id: 9,
+        mde_detraccion: 0,
+        mde_bie_id: 4,
+        mde_q: 1,
+        mde_p: 1,
+        mde_importe: 1
+      }
+    ])
   }
 
   const handleDownloadPdf = async () => {
@@ -187,12 +213,14 @@ const AppCompras = props => {
   }
 
   const handleDeleteRow = id => {
-    setRows(prevRows => {
-      let rows = prevRows.filter(function (r) {
-        return r.mde_id !== id
-      })
+    setTimeout(() => {
+      setRows(prevRows => {
+        let rows = prevRows.filter(function (r) {
+          return r.mde_id !== id
+        })
 
-      return [...rows]
+        return [...rows]
+      })
     })
   }
 
@@ -266,10 +294,12 @@ const AppCompras = props => {
       flex: 1,
       align: 'right',
       editable: true,
-      valueFormatter: p => Math.ceil10(p.value, -2).toFixed(2)
+      valueFormatter: p => Math.ceil10(p.value, -2).toFixed(2),
+      cellClassName: 'font-tabular-nums'
     },
     {
       field: 'mde_opt',
+      type: 'actions',
       width: 100,
       hideable: false,
       hideSortIcons: true,
@@ -278,18 +308,30 @@ const AppCompras = props => {
           add
         </Button>
       ),
-      renderCell: p => {
-        return (
-          <Button
-            size='small'
-            onClick={() => {
-              handleDeleteRow(p.id)
-            }}
-          >
-            del
-          </Button>
-        )
-      }
+      getActions: p => [
+        <GridActionsCellItem
+          key='1'
+          icon={<Delete />}
+          label='Delete'
+          onClickCapture={() => {
+            handleDeleteRow(p.id)
+          }}
+        />,
+        <GridActionsCellItem
+          key='2'
+          icon={<Security />}
+          label='Toggle Admin'
+          onClick={() => console.log(p)}
+          showInMenu
+        />,
+        <GridActionsCellItem
+          key='3'
+          icon={<FileCopy />}
+          label='Duplicate User'
+          onClick={() => console.log(p)}
+          showInMenu
+        />
+      ]
     }
   ]
 
@@ -354,9 +396,9 @@ const AppCompras = props => {
                         'aria-label': 'description',
                         style: { color: 'red', fontSize: 23, fontWeight: 700, lineHeight: 1.2 }
                       }}
-                      value={zfill(mov.mov_num, 8)}
+                      value={zfill(mov.mov_numero, 8)}
                       onChange={e => {
-                        setMov({ ...mov, mov_num: e.target.value })
+                        setMov({ ...mov, mov_numero: e.target.value })
                       }}
                     />
                   </Typography>
@@ -528,6 +570,7 @@ const AppCompras = props => {
               <Grid item xs={12} sm={12} xl={12}>
                 <DataGrid
                   autoHeight
+                  disableSelectionOnClick
                   rows={rows}
                   getRowId={row => row.mde_id}
                   hideFooter={true}
@@ -552,6 +595,7 @@ const AppCompras = props => {
                       if (p.field == 'mde_importe') {
                         updaterow.mde_p = p.value / updaterow.mde_q
                       }
+
                       updaterow[p.field] = parseFloat(p.value)
 
                       return [...rows, updaterow]
@@ -631,6 +675,8 @@ const AppCompras = props => {
               rows={2}
               fullWidth
               multiline
+              value={mov.mov_obs}
+              onChange={e => setMov({ ...mov, mov_obs: e.target.value })}
               id='invoice-note'
               sx={{ '& .MuiInputBase-input': { color: 'text.secondary' } }}
               placeholder='Obserbaciones'
@@ -639,7 +685,7 @@ const AppCompras = props => {
         </Card>
       </Grid>
       <Grid item xl={3} md={4} xs={4} sx={{ zIndex: 1, displayPrint: 'none' }}>
-        <AddActions urlImg={urlImg} handleDownloadPdf={handleDownloadPdf} />
+        <AddActions urlImg={urlImg} handleDownloadPdf={handleDownloadPdf} mov={mov} rows={rows} />
       </Grid>
     </Grid>
   )
@@ -648,44 +694,47 @@ const AppCompras = props => {
 export default AppCompras
 
 export const getServerSideProps = async () => {
-  const bd_bie = await axios
-    .get('https://sistema.companycacel.com/Main/getAll/bie', {
-      headers: {
-        gcl_id: '1',
-        alm_id: '1',
-        periodo: '2023-03',
-        Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
-      }
-    })
+  const bd_bie = await fetch('https://sistema.companycacel.com/Main/getAll/bie', {
+    method: 'GET',
+    headers: {
+      gcl_id: '1',
+      alm_id: '1',
+      periodo: '2023-03',
+      Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
+    }
+  })
+    .then(r => r.json())
     .then(r => {
-      return r.data
+      return r
     })
 
-  const bd_age = await axios
-    .get('https://sistema.companycacel.com/Main/getAll/age', {
-      headers: {
-        gcl_id: '1',
-        alm_id: '1',
-        periodo: '2023-03',
-        Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
-      }
-    })
+  const bd_age = await fetch('https://sistema.companycacel.com/Main/getAll/age', {
+    method: 'GET',
+    headers: {
+      gcl_id: '1',
+      alm_id: '1',
+      periodo: '2023-03',
+      Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
+    }
+  })
+    .then(r => r.json())
     .then(r => {
-      return r.data
+      return r
     })
 
-  const bd_gt4 = await axios
-    .get('https://sistema.companycacel.com/Main/getAll/gt4', {
-      headers: {
-        gcl_id: '1',
-        alm_id: '1',
-        periodo: '2023-03',
-        Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
-      }
-    })
+  const bd_gt4 = await fetch('https://sistema.companycacel.com/Main/getAll/gt4', {
+    method: 'GET',
+    headers: {
+      gcl_id: '1',
+      alm_id: '1',
+      periodo: '2023-03',
+      Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
+    }
+  })
+    .then(r => r.json())
     .then(r => {
-      return r.data
+      return r
     })
 
-  return { props: { bd_bie, bd_age, bd_gt4 } }
+  return { props: { bd_bie: bd_bie ?? [], bd_age: bd_age ?? [], bd_gt4: bd_gt4 ?? [] } }
 }
