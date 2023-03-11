@@ -119,42 +119,11 @@ const AppCompras = props => {
 
   const { selectedClient, bd_bie, bd_age, bd_gt4 } = props
 
-  const [bie, setBie] = useState(() => {
-    let ops = []
-    for (const i in bd_bie) {
-      ops.push({ value: parseInt(bd_bie[i].bie_id), label: bd_bie[i].bie_nombre, bie_codigo: bd_bie[i].bie_codigo })
-    }
+  const [bie, setBie] = useState(bd_bie)
 
-    return ops
-  })
+  const [age, setAge] = useState(bd_age)
 
-  const [age, setAge] = useState(() => {
-    let opt = []
-    for (const i in bd_age) {
-      let a = bd_age[i]
-      opt.push({
-        value: parseInt(a.age_id),
-        label: a.age_gpe_id
-          ? a.age_gpe_id.gpe_identificacion + ' - ' + a.age_gpe_id.gpe_nombre + ', ' + a.age_gpe_id.gpe_apellidos
-          : a.age_gem_id.gem_ruc + ' - ' + a.age_gem_id.gem_razonsocial
-      })
-    }
-
-    return opt
-  })
-
-  const [gt4, setGt4] = useState(() => {
-    let opt = []
-    for (const i in bd_gt4) {
-      let g = bd_gt4[i]
-      opt.push({
-        value: parseInt(g.gt4_id),
-        label: g.gt4_descripcion
-      })
-    }
-
-    return opt
-  })
+  const [gt4, setGt4] = useState(bd_gt4)
   const [rows, setRows] = useState([])
 
   const [mov, setMov] = useState({
@@ -162,11 +131,12 @@ const AppCompras = props => {
     mov_fechaE: new Date().toLocaleString('af-ZA').split(' ')[0],
     mov_numero: 1,
     mov_age_id: 0,
-    mov_gt4_id: (() => gt4.filter(r => r.value === 1))(),
+    mov_gt4_id: (() => gt4.filter(r => r.value === 1)[0])(),
     mov_t10_id: 49,
     mov_t12_id: 2,
     mov_serie: 'NE01'
   })
+
   const printRef = useRef()
   const [urlImg, setUrlImg] = useState('')
 
@@ -197,9 +167,10 @@ const AppCompras = props => {
         mde_t6m_id: 23,
         mde_gta_id: 9,
         mde_detraccion: 0,
+        mde_igv: 0,
         mde_bie_id: 4,
         mde_q: 1,
-        mde_p: 1,
+        mde_vu: 1,
         mde_importe: 1
       }
     ])
@@ -238,9 +209,9 @@ const AppCompras = props => {
       type: 'singleSelect',
       valueOptions: bie,
       valueFormatter: p => {
-        const option = p.api.getColumn(p.field).valueOptions.find(({ value }) => value == p.value)
+        const option = p.api.getColumn(p.field).valueOptions.find(({ value }) => parseInt(value) == p.value)
 
-        return option.bie_codigo + ' - ' + option.label
+        return option.label
       }
     },
 
@@ -277,7 +248,7 @@ const AppCompras = props => {
       valueFormatter: p => Math.ceil10(p.value, -2).toFixed(2)
     },
     {
-      field: 'mde_p',
+      field: 'mde_vu',
       headerName: 'PRECIO',
       headerAlign: 'center',
       type: 'number',
@@ -554,6 +525,7 @@ const AppCompras = props => {
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
                       sx={{ width: '100%' }}
+                      label='FECHA'
                       format='DD/MM/YYYY'
                       value={dayjs(mov.mov_fechaE)}
                       name='mov_fechaE'
@@ -587,13 +559,13 @@ const AppCompras = props => {
                         return r.mde_id !== p.id
                       })
                       if (p.field == 'mde_q') {
-                        updaterow.mde_importe = updaterow.mde_p * p.value
+                        updaterow.mde_importe = updaterow.mde_vu * p.value
                       }
-                      if (p.field == 'mde_p') {
+                      if (p.field == 'mde_vu') {
                         updaterow.mde_importe = updaterow.mde_q * p.value
                       }
                       if (p.field == 'mde_importe') {
-                        updaterow.mde_p = p.value / updaterow.mde_q
+                        updaterow.mde_vu = p.value / updaterow.mde_q
                       }
 
                       updaterow[p.field] = parseFloat(p.value)
@@ -694,42 +666,62 @@ const AppCompras = props => {
 export default AppCompras
 
 export const getServerSideProps = async () => {
-  const bd_bie = await fetch('https://sistema.companycacel.com/Main/getAll/bie', {
-    method: 'GET',
+  const bd_bie = await fetch('http://localhost/sistema/Main/getApiSelect', {
+    method: 'POST',
     headers: {
       gcl_id: '1',
       alm_id: '1',
       periodo: '2023-03',
       Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
-    }
+    },
+    body: JSON.stringify({
+      id: 'bie_id',
+      tabla: 'bienes',
+      descripcion: ['bie_codigo', 'bie_nombre'],
+      where: { bie_status: 1 }
+    })
   })
     .then(r => r.json())
     .then(r => {
       return r
     })
 
-  const bd_age = await fetch('https://sistema.companycacel.com/Main/getAll/age', {
-    method: 'GET',
+  const bd_age = await fetch('http://localhost/sistema/Main/getApiSelect', {
+    method: 'POST',
     headers: {
       gcl_id: '1',
       alm_id: '1',
       periodo: '2023-03',
       Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
-    }
+    },
+    body: JSON.stringify({
+      id: 'age_id',
+      tabla: 'agentes',
+      descripcion: ['age_gpe_id.gpe_identificacion', 'age_gpe_id.gpe_nombre', 'age_gpe_id.gpe_apellidos'],
+      where: {
+        custom: 'age_gpe_id IS NOT NULL'
+      }
+    })
   })
     .then(r => r.json())
     .then(r => {
       return r
     })
 
-  const bd_gt4 = await fetch('https://sistema.companycacel.com/Main/getAll/gt4', {
-    method: 'GET',
+  const bd_gt4 = await fetch('http://localhost/sistema/Main/getApiSelect', {
+    method: 'POST',
     headers: {
       gcl_id: '1',
       alm_id: '1',
       periodo: '2023-03',
       Authorization: 'Basic YWRtaW5AY29tcGFueWNhY2VsLmNvbTpxd2VydA=='
-    }
+    },
+    body: JSON.stringify({
+      id: 'gt4_id',
+      tabla: 't4monedas',
+      descripcion: ['gt4_descripcion'],
+      where: {}
+    })
   })
     .then(r => r.json())
     .then(r => {

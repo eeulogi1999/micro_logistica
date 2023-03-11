@@ -44,10 +44,13 @@ const AddActions = props => {
               onClick={() => {
                 let mov = {
                   ...props.mov,
-                  mov_mde_id: JSON.stringify(props.rows),
+                  mov_mde_id: props.rows,
                   mov_gt4_id: props.mov.mov_gt4_id.value,
                   mov_age_id: props.mov.mov_age_id.value,
                   mov_fechaV: props.mov.mov_fechaE,
+                  mov_fechaR: props.mov.mov_fechaE,
+                  mov_t12num: 1,
+                  mov_alm_id: 1,
                   mov_tipo: 2,
                   mov_gus_id: 1,
                   mov_observaciones: props.mov.mov_obs,
@@ -59,11 +62,11 @@ const AddActions = props => {
                     mov_neto: 0
                   }),
                   mov_id: '',
-                  mov_gtc_id: 932,
+                  mov_tce_id: 932,
                   mov_total: props.rows.map(r => r['mde_importe']).reduce((a, b) => a + b),
                   mov_subtotal: props.rows.map(r => r['mde_importe']).reduce((a, b) => a + b)
                 }
-                fetch('/api/apiCMS/?url=Movimientos/setMovimiento', {
+                fetch('/api/apiCMS/?url=Movimientos/apiSetMov', {
                   method: 'POST',
                   body: JSON.stringify(mov)
                 })
